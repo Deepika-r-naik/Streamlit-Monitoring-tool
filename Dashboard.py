@@ -106,33 +106,53 @@ placeholder = st.empty()
 # dataframe filter
 filtered_df = df[df['datacenters'] == selected_datacenter].copy()
 
-# create three columns
+# Convert column names to lowercase
+df.columns = df.columns.str.lower()
+
+# Calculate metrics
+availability_count = df['availability'].count()
+network_performance_percentage = (df['network performances'] == 1).mean() * 100
+incidents_count = df['new incidents'].sum()
+
+# Create three columns
 kpi1, kpi2, kpi3 = st.columns(3)
 
-# fill in those three columns with respective metrics or KPIs
+# Fill in those three columns with respective metrics or KPIs
 kpi1.metric(
     label="Availability",
-    value=("Availability"),
-    
+    value=availability_count
 )
 
 kpi2.metric(
     label="Network Performances",
-    value="Network Performance",
+    value=f"{network_performance_percentage:.2f}%"
 )
 
 kpi3.metric(
     label="New Incidents",
-    value="New Incidents ",
-    
+    value=incidents_count
 )
 
+selected_kpi = st.session_state.get('selected_kpi', None)
+
+# Define the CSS styles for selected and unselected metrics
+kpi_styles = {
+    'kpi1': 'background-color: #333333; color: white;',
+    'kpi2': 'background-color: #333333; color: white;',
+    'kpi3': 'background-color: #333333; color: white;'
+}
+
+
+
+# Update the selected_kpi session state
+st.session_state.selected_kpi = selected_kpi
 
 #charts for observability
- # create two columns for charts
+ # create two columns for charts    
 
 df = pd.read_csv("data.csv").rename(columns=str.lower)
 fig_col1, fig_col2 = st.columns(2)
+
 with fig_col1:
             st.markdown("### Availability per cluster")
             fig = px.density_heatmap(
@@ -141,9 +161,9 @@ with fig_col1:
             st.write(fig)
             
 with fig_col2:
-            st.markdown("### Availability Count")
-            fig2 = px.histogram(data_frame=df, x="availability")
-            st.write(fig2)            
+            st.markdown("### Number of Incidents per Cluster")
+            figure2 = px.histogram(data_frame=df, x="new incidents", color="clusters")
+            st.plotly_chart(figure2)   
 
 
 
@@ -166,6 +186,13 @@ st.markdown("### Detailed Data View")
 
 
 #adding hyperlink
+# Create a new column with the hyperlink
+#filtered_df['Details'] = filtered_df.apply(lambda row: f'<a href="/details/{row["Datacenters"]}/{row["Clusters"]}">Details</a>', axis=1)
+
+# Display the table with the hyperlink
+#st.write(filtered_df[['Datacenters', 'Clusters', 'Details']].rename(columns={'Datacenters': 'Datacenter', 'Clusters': 'Cluster'}), unsafe_allow_html=True)
+
+
 
 st.table(filtered_df)
 
